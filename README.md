@@ -9,3 +9,5 @@
 * `npm run codestyle` - проверить стиль кода
 
 * запускать проект в http://localhost:8080/src/index.html
+
+
