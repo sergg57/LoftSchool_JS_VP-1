@@ -23,22 +23,43 @@ var storage = sessionStorage;
  *
  * @return {boolean}
 */
-
+/*
 function isMatching(full1, full2, chunk) {
-    //let bool = true;
-    let bool = false;
 
-    /*console.log('full1=', full1.slice(1));
-    console.log('full2=', full2);
-    console.log('chunk=', chunk);
-    */
 
     full1 = full1.toLowerCase();
     full2 = full2.toLowerCase();
     chunk = chunk.toLowerCase();
 
-    if (full1.indexOf(chunk, 0) == 0 || full2.indexOf(chunk, 0) == 0) { //|| full.indexOf(chunk, 0) < 0
+    if (full1.indexOf(chunk, 0) == 0 || full2.indexOf(chunk, 0) == 0 ) { //|| full.indexOf(chunk, 0) < 0
         bool = true;
+    }
+
+    return bool;
+
+}  */
+
+/**
+ * Функция должна проверять встречается ли подстрока chunk в строке full
+ * Проверка должна происходить без учета регистра символов
+ *
+ * @example
+ * isMatching('Moscow', 'moscow') // true
+ * isMatching('Moscow', 'mosc') // true
+ * isMatching('Moscow', 'cow') // true
+ * isMatching('Moscow', 'SCO') // true
+ * isMatching('Moscow', 'Moscov') // false
+ *
+ * @return {boolean}
+ */
+function isMatching(full1, full2, chunk) {
+    let bool = true;
+    let full = full1 + ' ' + full2;
+
+    full = full.toLowerCase();
+
+    if (full.indexOf(chunk) < 0) {
+        bool = false;
     }
 
     return bool;
@@ -81,28 +102,61 @@ function GetUserFriends () {
 
 // ----- Функция -обработчик события фильтрует общий список друзей по введённым символам ---//
 inputFilterLeft.addEventListener('keyup', function (e) {
-    // console.log('selectList.children = ', selectList.children.length);
-    //if (selectList.children.length == 0) {
+
+    if (ArrayObjList('#select_list').length == 0) { // это когда правый список пуст
         let startList = JSON.parse(storage.list);
 
         enterLeftLists('#user-left_template', startList);
         let result = filter('#list', inputFilterLeft);
-        enterLeftLists('#user-left_template', result);
 
-    /*} else {
-        let result = filter('#list', inputFilterLeft);
         enterLeftLists('#user-left_template', result);
-    } */
+    } else {
+
+        let startList = JSON.parse(storage.CurrentList);
+
+        enterLeftLists('#user-left_template', startList);
+        let result = filter('#list', inputFilterLeft);
+
+        enterLeftLists('#user-left_template', result);
+    }
+
 });  // end обработчика собития - inputFilterLeft.addEventListener
+
+// ----- Функция -обработчик события фильтрует избранный список друзей по введённым символам --- //
+inputFilterRight.addEventListener('keyup', function (e) {
+
+    if (storage.selectlist == undefined || storage.selectlist == '' ) {
+        //console.log('Список отобранных друзей - не сохранен', storage.selectlist);
+
+        //let startList = JSON.parse(storage.CurrentSelectList);
+
+        let startselectList = JSON.parse(storage.selectlist);
+
+        enterRightLists('#user-right_template', startselectList);
+
+        let result = filter('#select_list', inputFilterRight);
+
+        enterRightLists('#user-right_template', result);
+
+    } else {
+        //let startselectList = JSON.parse(storage.selectlist);
+
+        let startselectList = JSON.parse(storage.CurrentSelectList);
+        enterRightLists('#user-right_template', startselectList);
+        let result = filter('#select_list', inputFilterRight);
+        //console.log('result-right-filter', result);
+        enterRightLists('#user-right_template', result);
+    }
+});
 
 // ---- Функция Фильтрации по имени и по фамилии -- //
 function filter(selectList, inputFilter) {
     let ArrayObj = ArrayObjList(selectList);
     let result = [];
-    console.log('ArrayObj=', ArrayObj);
+    /* console.log('ArrayObj=', ArrayObj);
     console.log('inputFilter=', inputFilter);
     console.log('inputFilter=', inputFilter.value);
-
+    */
     for (var i =0; i < ArrayObj.length; i++) {
         if (inputFilter.value.length == 0) {
             result = ArrayObj;
@@ -114,67 +168,56 @@ function filter(selectList, inputFilter) {
         } // end if-1
     } // end for
 
-    if (result.length == 0) {
-        result = ArrayObj;
+    if (selectList == '#list' && inputFilter.value.length == 0 ) {
+        result = LeftCurrentList();
     }
-    console.log('result-', result);
+    // console.log('result-filter', result);
 
     return result;
 }
 
-// ----- Функция -обработчик события фильтрует избранный список друзей по введённым символам --- //
-inputFilterRight.addEventListener('keyup', function (e) {
-
-    let startselectList = JSON.parse(storage.selectlist);
-
-        enterLists('#user-right_template', startselectList);
-        let result = filter('#select_list', inputFilterRight);
-        enterLists('#user-right_template', result);
-
-
-    /*console.log('E=', e);
-
-    //let TagName = select_list;
-    let result = filter('#select_list', inputFilterRight);
-
-    enterLists('#user-right_template', result);
-    */
-});
-// - Функция обработчик движения мыши
-usersBlock.addEventListener('mouseover', function (e) {
-    /* console.log('E-mousrover =', e);
-
-    if (e.target.className === 'plus' || e.target.className === 'cross') {
-        e.target.style.cursor = 'pointer';
-    }
-    */
-});
 // --- Обработчик события - нажатие + в списке друзей - переносит выбранный элемент в избранный список --//
-
 friendsList.addEventListener('click', function (e) {
     // console.log('E-friendsList=', e);
 
     let ArrayObj = ArrayObjList('#select_list');
+
 
     if (e.target.className === "plus") {
         let fullName = [];
         let srcImage = e.target.previousElementSibling.firstElementChild.currentSrc;
         let selectListObj = {};
 
-        e.target.style.cursor = 'pointer';
+        // e.target.style.cursor = 'pointer';
         fullName = e.target.previousElementSibling.innerText.split(' ');
+
         fullName[0] = fullName[0].slice(1);
         fullName[1] = fullName[1].slice(0, -1);
         //console.log('fullName-000-!=', fullName);
         selectListObj = { first_name: fullName[0], last_name: fullName[1], photo_50: srcImage };
 
-        ArrayObj.push(selectListObj);
+        ArrayObj.push(selectListObj); // добавляем в уже имеющийся массив переносимый элемент
+        let Array = JSON.parse(storage.CurrentSelectList);
+        //console.log('CurrentSelectList-read-!!!', Array);
+        Array.push(selectListObj); // добавляем в уже имеющийся массив переносимый элемент
+        SaveCurrentStorage('currentSelectList', Array); // сохраняем текущее значение массива
+        //console.log('')
+        // Проверяем соответствует ли фильтру переносимый элемент (друг), если да, то выводим, если нет, не выводим
+        if (inputFilterRight.value.length != 0) { // фильтр не пустой
+            //console.log('inputFilterRight.value.length != 0 = ', inputFilterRight.value.length);
+            if (isMatching(fullName[0], fullName[1], inputFilterRight.value) === true) {
+                enterRightLists('#user-right_template', ArrayObj); // выводим обновленный массив в списке selectList
+            }// end if-2
+        } else if (inputFilterRight.value.length == 0) { // если фильтр пустой
+            enterRightLists('#user-right_template', ArrayObj); // выводим обновленный массив в списке selectList
+        }// end if-1
 
-        enterLists('#user-right_template', ArrayObj, select_list); // вывод элементов в списке selectList
+        //ArrayObjList('#select_list'); // массив объектов элементов - selectList
 
-        ArrayObjList('#select_list'); // массив объектов элементов - selectList
-
+        // удаляем перенесённый элемент -друга из общего списка - list
         deleteElemList('#list', fullName[0], fullName[1]);
+        // сохраняем изменившийся общий список - list в хранилище  - currentList
+        SaveCurrentStorage('currentList', ArrayObjList('#list')); // сохраняем текущее значение массива
     }
 });
 // ---- Обработчик события нажатия, удержания и перемещения мыши над полным списком друзей
@@ -191,17 +234,18 @@ friendsList.addEventListener('mousedown', function (e) {
         fullName[0] = fullName[0];
         //console.log('fullName-000-!=', fullName[0], fullName[1]);
         // определяем номер li в списке list
-        let ArrayObj = ArrayObjList('#list');
-        //console.log('ArrayObj=', ArrayObj[0]);
+        let LeftArrayObj = ArrayObjList('#list');
+        // загружаем список избранных друзей из хранилища selectlist
+        let ArrayObj = ArrayObjList('#select_list');
+        // console.log('ArrayObj=', ArrayObj[0]);
 
 
-        for (var i = 0; i < ArrayObj.length; i++) {
-            if (ArrayObj[i].first_name == fullName[0] && ArrayObj[i].last_name === fullName[1]) {
+        for (var i = 0; i < LeftArrayObj.length; i++) {
+            if (LeftArrayObj[i].first_name == fullName[0] && LeftArrayObj[i].last_name === fullName[1]) {
                 numberLi = i;
             }
         }
 
-        //let targetList = e.target.parentElement.parentElement.parentElement;
         let targetLi = e.target.parentElement.parentElement.parentElement.children[numberLi];
 
         let startY = e.clientY;
@@ -231,20 +275,82 @@ friendsList.addEventListener('mousedown', function (e) {
 
             if (Math.abs(e.clientY - startY) > 1) {
                 selectListObj = { first_name: fullName[0], last_name: fullName[1], photo_50: srcImage };
-                ArrayObj = ArrayObjList('#select_list'); // массив объектов элементов - selectList
-                ArrayObj.push(selectListObj); // добавляем ныбранный элемент
 
-                //console.log('selectListObj=', selectListObj);
-                //console.log('ArrayObj[i]-!!!!=', ArrayObj);
+                ArrayObj.push(selectListObj); // добавляем в уже имеющийся массив переносимый элемент
+                let Array = JSON.parse(storage.CurrentSelectList);
+                //console.log('CurrentSelectList-read-!!!', Array);
+                Array.push(selectListObj); // добавляем в уже имеющийся массив переносимый элемент
+                SaveCurrentStorage('currentSelectList', Array); // сохраняем текущее значение массива
 
-
-                enterLists('#user-right_template', ArrayObj); // вывод элементов в списке selectList
-
-               // ArrayObjList('#select_list'); // массив объектов элементов - selectList
-
+           // Проверяем соответствует ли фильтру переносимый элемент (друг), если да, то выводим, если нет, не выводим
+                if (inputFilterRight.value.length != 0) { // фильтр не пустой
+                    if (isMatching(fullName[0], fullName[1], inputFilterRight.value) === true) {
+                        // выводим обновленный массив в списке selectList
+                        enterRightLists('#user-right_template', ArrayObj);
+                    }// end if-2
+                } else if (inputFilterRight.value.length == 0) { // если фильтр пустой
+                    enterRightLists('#user-right_template', ArrayObj); // выводим обновленный массив в списке selectList
+                }// end if-1
+                // удаляем перенесённый элемент -друга из общего списка - list
                 deleteElemList('#list', fullName[0], fullName[1]);
+                // сохраняем изменившийся общий список - list в хранилище  - currentList
+                SaveCurrentStorage('currentList', ArrayObjList('#list')); // сохраняем текущее значение массива
             }
         })
+    }
+});
+
+// --- Обработчик события - нажатие на "крестик" в списке друзей - удаляет выбранный элемент в избранном списке --//
+selectList.addEventListener('click', function (e) {
+    //console.log('E-selectList=', e);
+
+    let ArrayObj = [];
+
+    if (e.target.className === "cross") {
+        let fullName = [];
+        let srcImage = e.target.previousElementSibling.firstElementChild.currentSrc;
+        let selectListObj = {};
+
+        fullName = e.target.previousElementSibling.innerText.split(' ');
+        fullName[0] = fullName[0].slice(1);
+        fullName[1] = fullName[1].slice(0, -1);
+        selectListObj = { first_name: fullName[0], last_name: fullName[1], photo_50: srcImage };
+        //console.log('selectListObj=', selectListObj);
+        // console.log('fullName_??=', fullName[0], 'fullName[1]_??', fullName[1] );
+
+        // убираем из списка избранных друзей удаляемого друга
+        deleteElemList('#select_list', fullName[0], fullName[1]);
+        // сораняем  измененный список в хранилище массива избранных друзей ---?????
+        let Array = ArrayObjList('#select_list');
+        //console.log('ARREY- &=', Array);
+        SaveCurrentStorage('currentSelectList', Array); // сохраняем текущее значение списка
+        //SaveCurrentStorage('сurrentSelectList', ArrayObjList('#select_list')); // сохраняем текущее значение списка
+        let Arraycurrent = JSON.parse(storage.CurrentSelectList);
+        // console.log('CurrentSelectList-read-??', Arraycurrent);
+        // console.log('ArrayObjList-??', ArrayObjList('#select_list'));
+
+        // загружаем массив общего списка из хранилища
+        ArrayObj = JSON.parse(storage.CurrentList);
+        // добавляем в него переносимый элемент
+        ArrayObj.push(selectListObj);
+        //console.log('ArrayObj-!!!=', ArrayObj);
+        // сохраняем измененный массив в хранилище
+        SaveCurrentStorage('currentList', ArrayObj); // сохраняем текущее значение списка
+
+        // загружаем массив друзей показанных в левом списке
+        ArrayObj = ArrayObjList('#list'); // массив объектов элементов - List
+        //console.log('ArrayObj=', ArrayObj);
+        ArrayObj.push(selectListObj); // добавляем друга удаленного из списка избранных в массив общего списка - List
+        // console.log('ArrayObj- для списка=', ArrayObj);
+        // Проверяем соотвествует ли добавляемый элемент-друг фильтру, если - да - выводим, если нет, не выводим
+        if (inputFilterLeft.value.length != 0) { // фильтр не пустой
+            if (isMatching(fullName[0], fullName[1], inputFilterLeft.value) === true) {
+                // выводим обновленный массив в списке selectList
+                enterLeftLists('#user-left_template', ArrayObj); // вывод элементов в списке List
+            }// end if-2
+        } else if (inputFilterRight.value.length == 0) { // если фильтр пустой
+            enterLeftLists('#user-left_template', ArrayObj); // вывод элементов в списке List
+        }// end if-1
     }
 });
 
@@ -301,52 +407,31 @@ selectList.addEventListener('mousedown', function (e) {
             document.body.removeChild(duptargetLi);
 
             if (Math.abs(e.clientY - startY) > 1) {
-                // удаляем numderLi - элемент из массва объектов - select_list
+                // убираем из списка избранных друзей удаяемого друга
                 deleteElemList('#select_list', fullName[0], fullName[1]);
-                // перезагружаем список - select_list
-                //enterLists('#user-right_template', ArrayObj);
-                // получаем массив объектов списка list
-                ArrayObj = ArrayObjList('#list');
-                // добавляем в него numderLi - элемент из массва объектов - list
-                selectListObj = { first_name: fullName[0], last_name: fullName[1], photo_50: srcImage };
-                ArrayObj.push(selectListObj);
-                //console.log('ArrayObj=', ArrayObj);
-                // перезагружаем список - select-list
-
-                enterLeftLists('#user-left_template', ArrayObj); // вывод элементов в списке List
+                // сораняем  измененный список в хранилище массива избранных друзей
+                SaveCurrentStorage('currentSelectList', ArrayObjList('#select_list')); // сохраняем текущее значение
+                ArrayObj = ArrayObjList('#list'); // формируем массив объектов элементов - List
+                // console.log('ArrayObj=', ArrayObj);
+                ArrayObj.push(selectListObj); // добавляем друга удаленного из списка избранных в массив общего списка
+                // console.log('ArrayObj-!!!=', ArrayObj);
+                // сохраняем измененный массив в хранилище
+                SaveCurrentStorage('currentList', ArrayObj); // сохраняем текущее значение списка
+        // Проверяем соотвествует ли добавляемый элемент-друг фильтру, если - да - выводим, если нет, не выводим
+                if (inputFilterLeft.value.length != 0) { // фильтр не пустой
+                    if (isMatching(fullName[0], fullName[1], inputFilterLeft.value) === true) {
+                        // выводим обновленный массив в списке selectList
+                        enterLeftLists('#user-left_template', ArrayObj); // вывод элементов в списке List
+                    }// end if-2
+                } else if (inputFilterRight.value.length == 0) { // если фильтр пустой
+                    enterLeftLists('#user-left_template', ArrayObj); // вывод элементов в списке List
+                }// end if-1
             }
         })
     }
 });
 
-// --- Обработчик события - нажатие на "крестик" в списке друзей - удаляет выбранный элемент в избранном списке --//
-selectList.addEventListener('click', function (e) {
-    //console.log('E-selectList=', e);
 
-    let ArrayObj = [];
-
-    if (e.target.className === "cross") {
-        let fullName = [];
-        let srcImage = e.target.previousElementSibling.firstElementChild.currentSrc;
-        let selectListObj = {};
-
-        fullName = e.target.previousElementSibling.innerText.split(' ');
-        fullName[0] = fullName[0].slice(1);
-        fullName[1] = fullName[1].slice(0, -1);
-        selectListObj = { first_name: fullName[0], last_name: fullName[1], photo_50: srcImage };
-        //console.log('selectListObj=', selectListObj);
-        // console.log('fullName_??=', fullName[0], 'fullName[1]_??', fullName[1] );
-
-        deleteElemList('#select_list', fullName[0], fullName[1]);
-
-        ArrayObj = ArrayObjList('#list'); // массив объектов элементов - List
-        //console.log('ArrayObj=', ArrayObj);
-        ArrayObj.push(selectListObj);
-        //console.log('ArrayObj-!!!=', ArrayObj);
-        enterLeftLists('#user-left_template', ArrayObj); // вывод элементов в списке List
-         //enterLists('#list', ArrayObj, list); // вывод элементов в списке List
-    }
-});
 // --- Обработчик события - перемещение элемента списка из общего списка друзей
 
 
@@ -394,8 +479,37 @@ function deleteElemList(listSelector, firstName, lastName) {
     }
 }
 
+// ---- Функция сравнения списков Функция - формирования текущего списка общих друзей - левого списка == ---
+function LeftCurrentList () {
+    let ArrayLeft = JSON.parse(storage.list);
+    //let ArrayLeft = JSON.parse(storage.list);
+    let ArrayRight = JSON.parse(storage.CurrentSelectList);
+    let resultLeft =[];
+
+    // console.log ('ArrayLeft=', ArrayLeft);
+    // console.log ('ArrayRight=', ArrayRight);
+    for (var i = 0; i < ArrayLeft.length; i++) {
+        let bool = false;
+
+            for ( var j = 0; j < ArrayRight.length; j++) {
+                let chunk = ArrayRight[j].first_name.toLowerCase() + ' ' + ArrayRight[j].last_name.toLowerCase();
+                //console.log('Массив Разницы списков- Chank= ', chunk);
+
+                if (isMatching(ArrayLeft[i].first_name, ArrayLeft[i].last_name, chunk) === true) {
+                    bool = true;
+                }
+            }
+
+        if (bool == false) {
+            resultLeft.push(ArrayLeft[i]);
+        }
+    }
+    // console.log('Массив Разницы списков = ', resultLeft);
+    return resultLeft;
+}
+
 // --- Функция вывода списков в select_list
-function enterLists(selector, ArrayObj) {
+function enterRightLists(selector, ArrayObj) {
     // console.log('selector=', selector);
 
     const templateElement = document.querySelector(selector);
@@ -436,7 +550,7 @@ function enterLeftLists(selector, ArrayObj) {
         // console.log('ArrayObj=', ArrayObj);
 
 }
-// --- Функция обработчик - события нажатия на кнопку -сохрвнить -- //
+// --- Функция обработчик - события нажатия на кнопку -сохранить -- //
 
 ButtonSave.addEventListener('click', function () {
 
@@ -450,23 +564,40 @@ function SaveLocalStorage(listSelector) {
     // - получить списки
     let currentArray = ArrayObjList(listSelector);
 
-    console.log('currentArray-write', currentArray, listSelector);
+    //console.log('currentArray-write', currentArray, listSelector);
 
     if (listSelector == '#list') {
-        storage.list = JSON.stringify(currentArray);
-        currentArray = JSON.parse(storage.list);
+        storage.list = JSON.stringify(currentArray); // сохраняем массив в storage.list
+        // currentArray = JSON.parse(storage.list);
     }
-    if (listSelector == '#select_list' ) {
-        storage.selectlist = JSON.stringify(currentArray);
-        currentArray = JSON.parse(storage.selectlist);
+    if (listSelector == '#select_list') {
+        storage.selectlist = JSON.stringify(currentArray); // сохраняем массив в storage.selectlist
+        // currentArray = JSON.parse(storage.selectlist);
+    }
+}
+// --- Функция сохранения текущих массивов в localStorage
+function SaveCurrentStorage(listSelector, Array) {
+    if (listSelector == 'currentList') {
+        storage.CurrentList = JSON.stringify(Array); // сохраняем массив в storage.list
+        Array = JSON.parse(storage.CurrentList);
+        //console.log('CurrentList-read', Array);
+    }
+    if (listSelector == 'currentSelectList' ) {
+        storage.CurrentSelectList = JSON.stringify(Array); // сохраняем массив в storage.selectlist
+        Array = JSON.parse(storage.CurrentSelectList);
+        //console.log('CurrentSelectList-read', Array);
     }
 
-    console.log('currentArray-read', currentArray);
+    // console.log('currentArray-read', Array);
 }
 
 function start () {
     let startList = [];
     let startSelectList = [];
+    // обнуляем хранилища текущих массивов
+    let Array =[];
+    storage.CurrentList = JSON.stringify(Array);
+    storage.CurrentSelectList = JSON.stringify(Array);
 
     if (storage.list == undefined || storage.list == '' ) {
         // получаем список друзей из SDK VK и записываем его в  localstorage - list
@@ -480,13 +611,16 @@ function start () {
 
                     template = render({list: data.items});
                     list.innerHTML = template;
-                storage.list = JSON.stringify(data.items); // записываем в localstorage
+
+                storage.list = JSON.stringify(data.items); // записываем в localstorage - ???
+                storage.CurrentList = JSON.stringify(' '); // записываем в localstorage CurrentList -!!!
 
                 return data.items;
             });
     } else {
         // загружаем полный список друзей из localstorage
         startList = JSON.parse(storage.list);
+        storage.CurrentList = JSON.stringify(startList); //записываем в localstorage CurrentList -!!!
         enterLeftLists('#user-left_template', startList);
         //console.log('startList=', startList);
 
@@ -494,9 +628,16 @@ function start () {
             // загружаем список избранных друзей из localstorage
             startSelectList = JSON.parse(storage.selectlist);
             //console.log('startSelectList=', startSelectList);
+            // и записываем их в хранилище массива выбранных друзей - startSelectList
+            storage.CurrentSelectList = JSON.stringify(startSelectList);
         }
 
-        enterLists('#user-right_template', startSelectList);
+        enterRightLists('#user-right_template', startSelectList);
+    }
+    if (storage.selectlist == undefined || storage.selectlist == ' ') {
+
+        storage.selectlist = JSON.stringify(startSelectList);// записываем в localstorage -storage.selectlist
+
     }
 }
 // --- Здесь  происходит запуск программы --- //
